@@ -1,0 +1,16 @@
+{
+  "sub": "69de7e78-1bf6-4175-bbf8-3a29834d1bc0",
+  "cognito:groups": [
+    "test-group2"
+  ],
+  "token_use": "access",
+  "scope": "aws.cognito.signin.user.admin phone openid profile email",
+  "auth_time": 1535387641,
+  "iss": "https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_s8K8ZDg8T",
+  "exp": 1535391241,
+  "iat": 1535387641,
+  "version": 2,
+  "jti": "3c5aee6e-713c-4e43-8234-83f23ff1ca2c",
+  "client_id": "20gvpcr2nifa6e23iou7grjpjt",
+  "username": "teremterem"
+}

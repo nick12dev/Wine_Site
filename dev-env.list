@@ -1,0 +1,26 @@
+DEBUG=True
+SQLALCHEMY_ECHO=False
+
+PGUSER=legoly_role
+PGPASSWORD=
+PGHOST=localhost
+PGPORT=5432
+PGDATABASE=m3
+SQLALCHEMY_DATABASE_URI=postgresql://$PGUSER:$PGPASSWORD@$PGHOST:$PGPORT/$PGDATABASE
+
+COGNITO_AWS_REGION=us-east-1
+COGNITO_USER_POOL_ID=us-east-1_s1o24vpwz
+
+M3_SECRET=v8Vw7np3lCPPNeibpqJE2GveFcQ3wBZNirPgcYgnF4jqDjGmXZG9Pns270TBxaQJ
+M3_SYSTEM_SECRET=ecSt6c28CeQB3gvNBSHdKKCtQZZRQhpamsRR3adKXugcjRZHPHwrknV3xq2Sa5cu
+
+INTEGRATION_API_URL=https://m3-integration.v2-dev.magia.ai
+
+
+# The following helps checking Cognito integration without the client app
+# (not needed otherwise).
+
+COGNITO_USER_POOL_NAME=m3-user-pool3
+
+COGNITO_APP_CLIENT_ID=1e8jpfc4e2fps9pbobhg00g0pn
+COGNITO_APP_CLIENT_SECRET=1stsh5f7kd7ukujs99q8l3htsoob0bfblvncf7r85qu4guvft4g6

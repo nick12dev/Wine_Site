@@ -1,0 +1,73 @@
+version: '3'
+
+services:
+
+  core:
+    build: .
+    volumes:
+      - .:/core
+    tty: true
+    env_file:
+      - dev-env.list
+    restart: always
+    environment:
+      - SQLALCHEMY_DATABASE_URI=postgresql://postgres:password@db/m3_test
+      - SQLALCHEMY_ECHO=False
+      - M3_SYSTEM_SECRET=secret
+    depends_on:
+      - redis
+      - db
+      - celery_worker
+      - celery_beat
+    ports:
+      - 3000:3000
+
+  celery_worker:
+    build: .
+    volumes:
+      - .:/core
+    tty: true
+    env_file:
+      - dev-env.list
+    restart: always
+    environment:
+      - SQLALCHEMY_DATABASE_URI=postgresql://postgres:password@db/m3_test
+    entrypoint: celery
+    command:  -A core.order.celery:celery_app worker -c 2 -Q orders --loglevel=INFO --logfile=/var/log/m3/celery_worker.log
+    depends_on:
+    - redis
+
+  celery_beat:
+    build: .
+    volumes:
+    - .:/core
+    tty: true
+    env_file:
+    - dev-env.list
+    restart: always
+    environment:
+    - SQLALCHEMY_DATABASE_URI=postgresql://postgres:password@db/m3_test
+    entrypoint: celery
+    command:  -A core.order.celery:celery_app beat --loglevel=INFO --logfile=/var/log/m3/celery_beat.log
+    depends_on:
+    - redis
+
+  alembic:
+    image: alembic
+    tty: true
+    environment:
+    - PGHOST=db
+    - PGDATABASE=m3_test
+    - PGUSER=postgres
+    - PGPASSWORD=password
+
+  db:
+    image: postgres:9.6
+    restart: always
+    ports:
+    - "5532:5432"
+    environment:
+    - POSTGRES_PASSWORD=password
+
+  redis:
+    image: redis

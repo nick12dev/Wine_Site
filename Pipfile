@@ -1,0 +1,39 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "*"
+flask-sqlalchemy = "*"
+graphene-sqlalchemy = "*"
+flask-graphql = "*"
+flask-migrate = "*"
+requests = "*"
+pyjwt = "*"
+cryptography = "*"
+gunicorn = "*"
+gevent = "*"
+flask-principal = "*"
+"psycopg2-binary" = "*"
+celery = "*"
+redis = "*"
+"boto3" = "*"
+stripe = "*"
+python-dateutil = "*"
+psycogreen = "*"
+tornado = "==5.1.1"
+flower = "*"
+isounidecode = "*"
+git-pylint-commit-hook = "*"
+
+[dev-packages]
+pytest = "*"
+pytest-env = "*"
+coverage = "*"
+pyenchant = "*"
+pylint = "*"
+git-pylint-commit-hook = "*"
+
+[requires]
+python_version = "3.6"
