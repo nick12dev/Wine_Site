@@ -294,3 +294,98 @@ class FullCognitoUserSync:
         user.cognito_status = 'NOT_CONNECTED_TO_COGNITO'
         populate_cognito_display_status(user)
         self.not_connected_to_cognito_count += 1
+
+
+
+
+
+class FullCognitoUserSync:
+    def __init__(self):
+        self.successfully_updated_count = 0
+        self.successfully_added_count = 0
+        self.exceptions_count = 0
+        self.not_connected_to_cognito_count = 0
+        self.not_found_in_cognito_count = 0
+        self.cognito_list_complete = False
+
+        self._client = boto3.client(
+            'cognito-idp',
+            region_name=config.COGNITO_AWS_REGION,
+        )
+
+        self._cognito_user_dict = {}
+
+    def stats_to_dict(self):
+        stats = {
+            'successfully_updated_count': self.successfully_updated_count,
+            'successfully_added_count': self.successfully_added_count,
+            'not_connected_to_cognito_count': self.not_connected_to_cognito_count,
+            'not_found_in_cognito_count': self.not_found_in_cognito_count,
+            'exceptions_count': self.exceptions_count,
+            'cognito_list_complete': self.cognito_list_complete,
+        }
+        logging.info(
+            'Full Cognito user sync results: '
+            'successfully_updated_count=%(successfully_updated_count)r; '
+            'successfully_added_count=%(successfully_added_count)r; '
+            'not_connected_to_cognito_count=%(not_connected_to_cognito_count)r; '
+            'not_found_in_cognito_count=%(not_found_in_cognito_count)r; '
+            'exceptions_count=%(exceptions_count)r; '
+            'cognito_list_complete=%(cognito_list_complete)r',
+            stats
+        )
+        return stats
+
+    def __call__(self):
+        list_users_parameters = {
+            'UserPoolId': config.COGNITO_USER_POOL_ID,
+            'AttributesToGet': ['email', 'phone_number', 'email_verified', 'phone_number_verified'],
+        }
+
+        cognito_list_users_resp = self._client.list_users(
+            **list_users_parameters
+        )
+        self._populate_cognito_user_dict(cognito_list_users_resp)
+        pagination_token = cognito_list_users_resp.get('PaginationToken')
+        while pagination_token:
+            cognito_list_users_resp = self._client.list_users(
+                PaginationToken=pagination_token,
+                **list_users_parameters
+            )
+            self._populate_cognito_user_dict(cognito_list_users_resp)
+            pagination_token = cognito_list_users_resp.get('PaginationToken')
+
+        self.cognito_list_complete = True
+
+        self._process_cognito_user_dict()
+        self._process_absent_cognito_users()
+
+        db.session.commit()
+
+        return self
+
+    def _populate_cognito_user_dict(self, cognito_list_users_resp):
+        for cognito_user in cognito_list_users_resp['Users']:
+            cognito_sub = cognito_user.get('Username')
+            if cognito_sub:
+                self._cognito_user_dict[cognito_sub] = cognito_user
+            else:
+                self.exceptions_count += 1
+                logging.warning(
+                    "Failed to load cognito user ('Username' is blank): %s",
+                    cognito_user
+                )
+
+    def _process_cognito_user_dict(self):
+        for user in User.query.all():
+            try:
+                if user.cognito_sub:
+                    self._sync_user_with_cognito(user)
+                else:
+                    self._mark_user_as_not_connected(user)
+            except:
+                self.exceptions_count += 1
+                logging.exception(
+                    'Exception while processing user with id=%s and cognito_sub=%s',
+                    user.id, user.cognito_sub
+                )
